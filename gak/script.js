@@ -9,8 +9,9 @@ window.onresize = function () {
   canvas.height = document.body.clientHeight; //document.height is obsolete
 }
 
-var MAX_DROPLETS_PER_SPOT = 100;
-var SPOT_TIME_TO_ANIMATE = 60;
+var MIN_DROPLETS_PER_SPOT = 10;
+var MAX_DROPLETS_PER_SPOT = 20;
+var SPOT_TIME_TO_ANIMATE = 100;
 
 var VBD_K = 2.0;
 var VBH_K = 2.0;
@@ -65,7 +66,7 @@ class Droplet {
 
 class Drop {
   constructor(x, y) {
-    this.age = 0;
+    this.age = 1.0;
     this.x = x;
     this.y = y;
     this.initializeDroplets();
@@ -76,14 +77,15 @@ class Drop {
     var r = Math.round(Math.random() * 255);
     var g = Math.round(Math.random() * 255);
     var b = Math.round(Math.random() * 255);
-    var alpha = 1.0;
+    var alpha = 0.8;
     this.color = "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
-    var magnitude = Math.random() * 15;
-    var numDroplets = 15 + Math.round(Math.random() * (MAX_DROPLETS_PER_SPOT - 15));
+    var magnitude = 10 + Math.random() * 5;
+    var numDroplets = MIN_DROPLETS_PER_SPOT + Math.round(Math.random() * (MAX_DROPLETS_PER_SPOT - MIN_DROPLETS_PER_SPOT));
     var angleInc = Math.PI * 2.0 / numDroplets;
     for (var i = 0; i < numDroplets; i++) {
-      var vx = Math.cos(angle) * magnitude;
-      var vy = Math.sin(angle) * magnitude;
+      var dropletMagnitude = magnitude * 0.5 + (Math.random() * magnitude * 0.5);
+      var vx = Math.cos(angle) * dropletMagnitude;
+      var vy = Math.sin(angle) * dropletMagnitude;
       var droplet = new Droplet(this.x, this.y, vx, vy);
       this.droplets.push(droplet);
       angle += angleInc;
@@ -94,18 +96,22 @@ class Drop {
     ctx.beginPath();
     ctx.fillStyle = this.color;
     ctx.moveTo(this.droplets[0].x, this.droplets[0].y);
-    var d1, d2, dh, b1, b2, b3, b4, vd1, vd2, vdh, vb1, vb2, vb3, vb4, vbh_k, vbd_k;
+    var d1, d2, dh, b1, b2, b3, b4, vd1, vd2, vdh, vb1, vb2, vb3, vb4, vbh_k, vbd_k, d_vx_vy;
+    var droplet1, droplet2;
     var c = new Vector(this.x, this.y);
     for (var d1i = 0; d1i < numDroplets; d1i++) {
       var d2i = d1i + 1 < numDroplets ? d1i + 1 : 0;
-      d1 = new Vector(this.droplets[d1i].x, this.droplets[d1i].y);
-      d2 = new Vector(this.droplets[d2i].x, this.droplets[d2i].y);
+      droplet1 = this.droplets[d1i];
+      droplet2 = this.droplets[d2i];
+      d1 = new Vector(droplet1.x, droplet1.y);
+      d2 = new Vector(droplet2.x, droplet2.y);
       vd1 = new Vector(d1.x - c.x, d1.y - c.y);
       vd2 = new Vector(d2.x - c.x, d2.y - c.y);
       vbd_k = VBD_K * vd1.magnitude() / numDroplets;
       vb1 = vd1.perpendicular().unit().times(vbd_k);
       b1 = d1.add(vb1);
-      vdh = vd1.add(vd2).times(0.5).times(VDH_K);
+      d_vx_vy = new Vector((droplet1.vx + droplet2.vx) / 2.0, (droplet1.vy + droplet2.vy) / 2.0);
+      vdh = vd1.add(vd2).add(d_vx_vy).times(0.5).times(VDH_K);
       dh = c.add(vdh);
       vbh_k = VBH_K * vdh.magnitude() / numDroplets;
       vb2 = vdh.perpendicular().unit().times(-1.0 * vbh_k);
@@ -120,12 +126,6 @@ class Drop {
     for (var i = 0; i < numDroplets; i++) {
       this.droplets[i].update();
     }
-    // for (var i = 0; i < numDroplets; i++) {
-    //   droplet = this.droplets[i];
-    //   ctx.lineTo(droplet.x, droplet.y);
-    //   // ctx.arc(this.x, this.y, radius, 0, Math.PI * 2, true);
-    //   this.droplets[i].update();
-    // }
     ctx.fill();
     ctx.closePath();
     ctx.save();
@@ -149,13 +149,11 @@ function draw() {
     }
   }
   // draw fade rectangle over everything
-  ctx.beginPath();
-  ctx.fillStyle = "rgba(255,255,255,0.01)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.closePath();
-  if (drops.length > 0) {
-    raf = window.requestAnimationFrame(draw);
-  }
+  // ctx.beginPath();
+  // ctx.fillStyle = "rgba(255,255,255,0.008)";
+  // ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // ctx.closePath();
+  raf = window.requestAnimationFrame(draw);
 }
 
 canvas.addEventListener('mouseup', function (e) {
