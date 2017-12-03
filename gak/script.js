@@ -13,9 +13,9 @@ var MIN_DROPLETS_PER_SPOT = 10;
 var MAX_DROPLETS_PER_SPOT = 20;
 var SPOT_TIME_TO_ANIMATE = 100;
 
-var VBD_K = 2.0;
-var VBH_K = 2.0;
-var VDH_K = 0.7;
+var VBD_K = 1.5;
+var VBH_K = 3.0;
+var VDH_K = 0.6;
 
 var drops = [];
 
@@ -59,8 +59,8 @@ class Droplet {
   update() {
     this.x += this.vx;
     this.y += this.vy;
-    this.vx *= 0.95;
-    this.vy *= 0.95;
+    this.vx *= 0.85;
+    this.vy *= 0.85;
   }
 }
 
@@ -79,7 +79,7 @@ class Drop {
     var b = Math.round(Math.random() * 255);
     var alpha = 0.8;
     this.color = "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
-    var magnitude = 10 + Math.random() * 5;
+    var magnitude = 50 + Math.random() * 5;
     var numDroplets = MIN_DROPLETS_PER_SPOT + Math.round(Math.random() * (MAX_DROPLETS_PER_SPOT - MIN_DROPLETS_PER_SPOT));
     var angleInc = Math.PI * 2.0 / numDroplets;
     for (var i = 0; i < numDroplets; i++) {
@@ -94,6 +94,10 @@ class Drop {
   draw() {
     var numDroplets = this.droplets.length;
     ctx.beginPath();
+    // var gradient = ctx.createRadialGradient(this.x, this.y, 20 * this.age, this.x, this.y, 0);
+    // gradient.addColorStop(0, 'rgba(255,255,255,0.0');
+    // gradient.addColorStop(1, this.color);
+    // ctx.fillStyle = gradient;
     ctx.fillStyle = this.color;
     ctx.moveTo(this.droplets[0].x, this.droplets[0].y);
     var d1, d2, dh, b1, b2, b3, b4, vd1, vd2, vdh, vb1, vb2, vb3, vb4, vbh_k, vbd_k, d_vx_vy;
@@ -150,7 +154,7 @@ function draw() {
   }
   // draw fade rectangle over everything
   // ctx.beginPath();
-  // ctx.fillStyle = "rgba(255,255,255,0.008)";
+  // ctx.fillStyle = "rgba(255,255,255,0.005)";
   // ctx.fillRect(0, 0, canvas.width, canvas.height);
   // ctx.closePath();
   raf = window.requestAnimationFrame(draw);
@@ -158,5 +162,9 @@ function draw() {
 
 canvas.addEventListener('mouseup', function (e) {
   drops.push(new Drop(e.x, e.y));
+  ctx.beginPath();
+  ctx.fillStyle = "rgba(255,255,255,0.1)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.closePath();
   raf = window.requestAnimationFrame(draw);
 });
