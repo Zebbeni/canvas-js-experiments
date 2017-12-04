@@ -1,9 +1,21 @@
 <html>
     <head>
+      <link rel="spreadsheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
       <link rel="stylesheet" href="style.css">  
     </head>
     <body>
         <canvas id="canvas"></canvas>
+        <div id="settings">
+            <input type="button" id="refresh_button" clsss="off" value="Clear canvas" onclick="clearCanvas();"/><br>
+            <input type="button" id="randomize_color_button" class="off" value="Use random colors" onclick="toggleRandomizeColors();"/><br>
+            <input type="button" id="shade_streams_button" class="off" value="Shade streams" onclick="toggleShadeStreams();"/><br>
+            <input type="button" id="show_bleeders_button" class="off" value="Show bleeders" onclick="toggleShowBleeders();"/><br>
+            <p>Color variability</p>
+            <input type="range" id="change_color_variability" min="0" max="255" value="10" label="Color variability" oninput="setColorVariability(this.value);" onchange="setColorVariability(this.value);">
+            <p>Stream speed</p>
+            <input type="range" id="change_stream speed" min="0.0" max="5.0" step="0.1" value="0.5" label="Stream speed" oninput="setMaxStreamSpeed(this.value);" onchange="setMaxStreamSpeed(this.value);">
+        </div>
     </body>
+    <script src="settings.js"></script>
     <script src="script.js"></script>
 </html>

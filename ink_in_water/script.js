@@ -23,11 +23,15 @@ var droplets = [];
 function initialize() {
   canvas.width = document.body.clientWidth; //document.width is obsolete
   canvas.height = document.body.clientHeight; //document.height is obsolete
+  clearCanvas();
+  initializeForces();
+}
+
+function clearCanvas() {
   ctx.beginPath();
-  ctx.fillStyle = "rgba(0, 0, 0, 255)";
+  ctx.fillStyle = "rgba(255, 255, 255, 255)";
   ctx.fillRect(0,0, canvas.width, canvas.height);
   ctx.closePath();
-  initializeForces();
 }
 
 function initializeForces() {
@@ -107,33 +111,39 @@ class Droplet {
     }
     this.vx = this.vx * 0.9 + sumVx;
     this.vy = this.vy * 0.9 + sumVy;
-    var speed = this.radius * 0.5;
+    var speed = this.radius * MAX_SPEED;
     var magnitude = Math.sqrt(Math.pow(this.vx, 2) + Math.pow(this.vy, 2));
-    // if (speed > max_speed) {
-      this.vx *= speed / magnitude;
-      this.vy *= speed / magnitude;
-    // }
-    // if (this.a > 0.5) {
+    this.vx *= speed / magnitude;
+    this.vy *= speed / magnitude;
+    if (SHOW_BLEEDERS){
       this.bleeders.push(new Bleeder(this.x, this.y, this.radius, this.r, this.g, this.b, this.a));
-    // }
+    }
   }
   draw() {
-    var numBleeders = this.bleeders.length;
-    for (var b = 0; b < numBleeders; b++) {
-      if (this.bleeders[b].a < 0.1) {
-        this.bleeders.splice(b, 1);
-        b--;
-        numBleeders--;
-      } else {
-        this.bleeders[b].draw();
+    if (SHOW_BLEEDERS) {
+      var numBleeders = this.bleeders.length;
+      for (var b = 0; b < numBleeders; b++) {
+        if (this.bleeders[b].a < 0.1) {
+          this.bleeders.splice(b, 1);
+          b--;
+          numBleeders--;
+        } else {
+          this.bleeders[b].draw();
+        }
       }
     }
     ctx.beginPath();
-    var colorInside = "rgba(" + this.r + "," + this.g + "," + this.b + "," + this.a + ")";
-    var colorOutside = "rgba(" + this.r + "," + this.g + "," + this.b + "," + 0.0 + ")";
+    var colorInside, colorOutside;
     var gradient = ctx.createRadialGradient(this.x, this.y, this.radius, this.x, this.y, 0);
-    gradient.addColorStop(0, colorOutside);
+    if (SHADE_STREAMS) {
+      colorInside = "rgba(" + 255 + "," + 255 + "," + 255 + "," + this.a + ")";
+      colorOutside = "rgba(" + this.r + "," + this.g + "," + this.b + "," + this.a + ")";
+    } else {
+      colorInside = "rgba(" + this.r + "," + this.g + "," + this.b + "," + this.a + ")";
+      colorOutside = "rgba(" + this.r + "," + this.g + "," + this.b + "," + 0.0 + ")";
+    }
     gradient.addColorStop(1, colorInside);
+    gradient.addColorStop(0, colorOutside);
     ctx.fillStyle = gradient;
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
     ctx.fill();
@@ -165,9 +175,14 @@ function draw() {
 }
 
 canvas.addEventListener('mouseup', function(e) {
-  var r = Math.round(Math.random() * 255);
-  var g = Math.round(Math.random() * 255);
-  var b = Math.round(Math.random() * 255);
+  var mainR = 0;
+  var mainG = 0;
+  var mainB = 0;
+  if (RANDOMIZE_COLORS) {
+    var mainR = Math.round(Math.random() * 255);
+    var mainG = Math.round(Math.random() * 255);
+    var mainB = Math.round(Math.random() * 255);
+  }
   var size = 0.5 + Math.random() * 1.0;
   var mainAngle = Math.random() * 2.0 * Math.PI;
   for (var d = 0; d < DROPLETS_PER_SPOT; d++) {
@@ -177,6 +192,10 @@ canvas.addEventListener('mouseup', function(e) {
     var vy = Math.sin(angle) * magnitude;
     var x = e.x + vx;
     var y = e.y + vy;
+    var r = g = b = 0;
+    r = Math.round(Math.min(255, Math.max(0, mainR - (COLOR_VARIABILITY / 2.0) + Math.random() * COLOR_VARIABILITY)));
+    g = Math.round(Math.min(255, Math.max(0, mainG - (COLOR_VARIABILITY / 2.0) + Math.random() * COLOR_VARIABILITY)));
+    b = Math.round(Math.min(255, Math.max(0, mainB - (COLOR_VARIABILITY / 2.0) + Math.random() * COLOR_VARIABILITY)));
     droplets.push(new Droplet(x, y, vx * 10.0, vy * 10.0, Math.random() * 10.0 * size, r, g, b, 1.0));
   }
   raf = window.requestAnimationFrame(draw);
