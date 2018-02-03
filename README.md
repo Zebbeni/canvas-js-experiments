@@ -1,2 +1,4 @@
 # canvas-js-experiments
-A bunch of visual experiments to practice canvas drawing and animation
+A repo of visual experiments to practice canvas drawing and animation
+
+![Ink in Water](https://s3-us-west-2.amazonaws.com/andrewsrandom/Github+Media/ink_in_water.gif)
